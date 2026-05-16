@@ -1,10 +1,10 @@
 const Auth = {
   SESSION_KEY: 'pm_session',
-  save(user)     { sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user)); },
-  get()          { const s = sessionStorage.getItem(this.SESSION_KEY); return s ? JSON.parse(s) : null; },
-  clear()        { sessionStorage.removeItem(this.SESSION_KEY); },
+  save(user)     { localStorage.setItem(this.SESSION_KEY, JSON.stringify(user)); },
+  get()          { try { const s = localStorage.getItem(this.SESSION_KEY); return s ? JSON.parse(s) : null; } catch(e) { return null; } },
+  clear()        { localStorage.removeItem(this.SESSION_KEY); },
   isLoggedIn()   { return !!this.get(); },
-  requireAuth()  { if (!this.isLoggedIn()) window.location.href = 'index.html'; },
+  requireAuth()  { if (!this.isLoggedIn()) window.location.replace('index.html'); },
   isAdmin()      { const u = this.get(); return u && u.role === 'ADMINISTRATOR'; },
 };
 
@@ -33,7 +33,7 @@ async function doLogin() {
       errorMsg.style.display = 'block'; return;
     }
     Auth.save({ id: user[0], username: user[1], role: user[3], name: user[4] });
-    window.location.href = 'dashboard.html';
+    window.location.replace('dashboard.html');
   } catch(e) {
     loading.style.display = 'none';
     errorMsg.textContent = 'Login failed. Please try again.';
@@ -41,4 +41,4 @@ async function doLogin() {
   }
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-if (Auth.isLoggedIn()) window.location.href = 'dashboard.html';
+if (Auth.isLoggedIn()) window.location.replace('dashboard.html');
