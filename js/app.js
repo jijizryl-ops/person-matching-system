@@ -10,7 +10,10 @@ let chartGender  = null;
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-  Auth.requireAuth();
+  if (!Auth.isLoggedIn()) {
+    window.location.replace('index.html');
+    return;
+  }
   initUser();
   updateDate();
   loadAll();
