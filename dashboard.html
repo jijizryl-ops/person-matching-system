@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Person Matching System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">🏛️</div>
+      <h2>Person Matching System</h2>
+      <p>Barangay Portal</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="icon">📊</span> Dashboard
+      </a>
+      <div class="nav-section">Residents</div>
+      <a class="nav-item" onclick="showPage('residents')" id="nav-residents">
+        <span class="icon">👥</span> Manage Residents
+      </a>
+      <a class="nav-item" onclick="showPage('search')" id="nav-search">
+        <span class="icon">🔍</span> Search / Match
+      </a>
+      <div class="nav-section">Records</div>
+      <a class="nav-item" onclick="showPage('blotter')" id="nav-blotter">
+        <span class="icon">📋</span> Blotter Records
+      </a>
+      <a class="nav-item" onclick="showPage('reports')" id="nav-reports">
+        <span class="icon">🖨️</span> Reports
+      </a>
+      <div class="nav-section admin-only">Admin</div>
+      <a class="nav-item admin-only" onclick="showPage('accounts')" id="nav-accounts">
+        <span class="icon">👤</span> Manage Accounts
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar" id="userAvatar">?</div>
+        <div class="info">
+          <div class="name" id="userName">Loading...</div>
+          <div class="role" id="userRole">—</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Logout">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="topbarDate"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════════════
+           PAGE: DASHBOARD
+      ══════════════════════════════════════════ -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">👥</div>
+            <div class="stat-info">
+              <div class="stat-val" id="statResidents">—</div>
+              <div class="stat-label">Total Residents</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">📋</div>
+            <div class="stat-info">
+              <div class="stat-val" id="statBlotters">—</div>
+              <div class="stat-label">Blotter Records</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">👨</div>
+            <div class="stat-info">
+              <div class="stat-val" id="statMale">—</div>
+              <div class="stat-label">Male Residents</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">👩</div>
+            <div class="stat-info">
+              <div class="stat-val" id="statFemale">—</div>
+              <div class="stat-label">Female Residents</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Residents by Gender</div>
+                <div class="card-subtitle">Distribution overview</div>
+              </div>
+            </div>
+            <canvas id="chartGender" height="220"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Recent Blotters</div>
+                <div class="card-subtitle">Latest incident reports</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="showPage('blotter')">View All</button>
+            </div>
+            <div id="recentBlotters">
+              <div class="empty-state"><div class="icon">📋</div><p>No blotter records yet</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recently Added Residents</div>
+              <div class="card-subtitle">Last 5 registered residents</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('residents')">View All</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Gender</th><th>Age</th><th>Address</th><th>Date Added</th>
+              </tr></thead>
+              <tbody id="recentResidents">
+                <tr><td colspan="5"><div class="empty-state"><div class="icon">👥</div><p>No residents yet</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PAGE: RESIDENTS
+      ══════════════════════════════════════════ -->
+      <div class="page" id="page-residents">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Resident Records</div>
+              <div class="card-subtitle">All registered barangay residents</div>
+            </div>
+            <button class="btn btn-primary" onclick="openAddResident()">＋ Add Resident</button>
+          </div>
+          <div class="search-bar" style="margin-bottom:16px">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="residentSearch" placeholder="Search by name..." oninput="filterResidents()"/>
+            </div>
+            <select id="filterGender" onchange="filterResidents()">
+              <option value="">All Genders</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Resident</th><th>Gender</th><th>Age</th><th>Contact</th><th>Address</th><th>Skin</th><th>Build</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="residentsTable">
+                <tr><td colspan="8"><div class="empty-state"><div class="icon">👥</div><p>Loading residents...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PAGE: SEARCH / MATCH
+      ══════════════════════════════════════════ -->
+      <div class="page" id="page-search">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">🔍 Person Matching Search</div>
+              <div class="card-subtitle">Search residents by physical description</div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" id="s_fname" placeholder="e.g. Juan"/>
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" id="s_lname" placeholder="e.g. Dela Cruz"/>
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <select id="s_gender">
+                <option value="">Any</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Skin Color</label>
+              <select id="s_skin">
+                <option value="">Any</option>
+                <option value="FAIR">Fair</option>
+                <option value="MORENO">Moreno</option>
+                <option value="DARK">Dark</option>
+                <option value="LIGHT">Light</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Body Build</label>
+              <select id="s_build">
+                <option value="">Any</option>
+                <option value="SLIM">Slim</option>
+                <option value="AVERAGE">Average</option>
+                <option value="CHUBBY">Chubby</option>
+                <option value="FAT">Fat</option>
+                <option value="MUSCULAR">Muscular</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hair Color</label>
+              <select id="s_hair">
+                <option value="">Any</option>
+                <option value="BLACK">Black</option>
+                <option value="BROWN">Brown</option>
+                <option value="BLONDE">Blonde</option>
+                <option value="GRAY">Gray</option>
+                <option value="WHITE">White</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Eye Type</label>
+              <select id="s_eyes">
+                <option value="">Any</option>
+                <option value="ROUND">Round</option>
+                <option value="ALMOND">Almond</option>
+                <option value="SMALL">Small</option>
+                <option value="BIG">Big</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Face Shape</label>
+              <select id="s_face">
+                <option value="">Any</option>
+                <option value="OVAL">Oval</option>
+                <option value="ROUND">Round</option>
+                <option value="SQUARE">Square</option>
+                <option value="HEART">Heart</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="doSearch()">🔍 Search</button>
+            <button class="btn btn-secondary" onclick="clearSearch()">✕ Clear</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">Search Results <span id="searchCount" style="color:var(--text-muted);font-weight:400;font-size:13px"></span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Resident</th><th>Gender</th><th>Age</th><th>Skin</th><th>Build</th><th>Hair</th><th>Eyes</th><th>Address</th>
+              </tr></thead>
+              <tbody id="searchResults">
+                <tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div><p>Use filters above to search</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PAGE: BLOTTER
+      ══════════════════════════════════════════ -->
+      <div class="page" id="page-blotter">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Blotter Records</div>
+              <div class="card-subtitle">Incident and complaint reports</div>
+            </div>
+            <button class="btn btn-primary" onclick="openAddBlotter()">＋ Add Blotter</button>
+          </div>
+          <div class="search-bar" style="margin-bottom:16px">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="blotterSearch" placeholder="Search by incident or complainant..." oninput="filterBlotters()"/>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Incident</th><th>Place</th><th>Complainant</th><th>Suspect</th><th>Date</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="blotterTable">
+                <tr><td colspan="7"><div class="empty-state"><div class="icon">📋</div><p>Loading blotter records...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PAGE: REPORTS
+      ══════════════════════════════════════════ -->
+      <div class="page" id="page-reports">
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card" style="text-align:center;padding:32px">
+            <div style="font-size:48px;margin-bottom:12px">👥</div>
+            <div class="card-title" style="margin-bottom:6px">Residents Report</div>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Print complete list of all registered residents</p>
+            <button class="btn btn-primary" onclick="printResidentsReport()">🖨️ Print Report</button>
+          </div>
+          <div class="card" style="text-align:center;padding:32px">
+            <div style="font-size:48px;margin-bottom:12px">📋</div>
+            <div class="card-title" style="margin-bottom:6px">Blotter Report</div>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Print all incident and complaint records</p>
+            <button class="btn btn-primary" onclick="printBlotterReport()">🖨️ Print Report</button>
+          </div>
+        </div>
+        <div class="card" id="printArea" style="display:none">
+          <div id="printContent"></div>
+          <div style="margin-top:20px;display:flex;gap:10px" class="no-print">
+            <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-secondary" onclick="closePrint()">✕ Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           PAGE: ACCOUNTS (Admin only)
+      ══════════════════════════════════════════ -->
+      <div class="page" id="page-accounts">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Manage Accounts</div>
+              <div class="card-subtitle">Staff and administrator accounts</div>
+            </div>
+            <button class="btn btn-primary" onclick="openAddAccount()">＋ Add Account</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Username</th><th>Role</th><th>Gender</th><th>Contact</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="accountsTable">
+                <tr><td colspan="6"><div class="empty-state"><div class="icon">👤</div><p>Loading accounts...</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════
+     MODAL: ADD / EDIT RESIDENT
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalResident">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" id="residentModalTitle">Add Resident</div>
+      <button class="modal-close" onclick="closeModal('modalResident')">✕</button>
+    </div>
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;font-weight:600;color:var(--green-dark);text-transform:uppercase;letter-spacing:.05em">Personal Information</span>
+    </div>
+    <div class="form-grid">
+      <input type="hidden" id="r_id"/>
+      <div class="form-group">
+        <label>First Name *</label>
+        <input type="text" id="r_fname" placeholder="Juan"/>
+      </div>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" id="r_lname" placeholder="Dela Cruz"/>
+      </div>
+      <div class="form-group">
+        <label>Middle Name</label>
+        <input type="text" id="r_mname" placeholder="Santos"/>
+      </div>
+      <div class="form-group">
+        <label>Nickname</label>
+        <input type="text" id="r_nickname" placeholder="Jun"/>
+      </div>
+      <div class="form-group">
+        <label>Date of Birth *</label>
+        <input type="date" id="r_dob"/>
+      </div>
+      <div class="form-group">
+        <label>Place of Birth</label>
+        <input type="text" id="r_pob" placeholder="Roxas City, Capiz"/>
+      </div>
+      <div class="form-group">
+        <label>Gender *</label>
+        <select id="r_gender">
+          <option value="">Select Gender</option>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contact No.</label>
+        <input type="tel" id="r_contact" placeholder="+639xxxxxxxxx"/>
+      </div>
+      <div class="form-group full">
+        <label>Address *</label>
+        <input type="text" id="r_address" placeholder="Barangay, Municipality, Province"/>
+      </div>
+    </div>
+    <div style="margin:16px 0 12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;font-weight:600;color:var(--green-dark);text-transform:uppercase;letter-spacing:.05em">Physical Description</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Skin Color</label>
+        <select id="r_skin">
+          <option value="">Select</option>
+          <option>FAIR</option><option>MORENO</option><option>DARK</option><option>LIGHT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Body Build</label>
+        <select id="r_build">
+          <option value="">Select</option>
+          <option>SLIM</option><option>AVERAGE</option><option>CHUBBY</option><option>FAT</option><option>MUSCULAR</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hair Color</label>
+        <select id="r_haircolor">
+          <option value="">Select</option>
+          <option>BLACK</option><option>BROWN</option><option>BLONDE</option><option>GRAY</option><option>WHITE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hair Type</label>
+        <select id="r_hairtype">
+          <option value="">Select</option>
+          <option>STRAIGHT</option><option>WAVY</option><option>CURLY</option><option>BALD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hair Length</label>
+        <select id="r_hairlength">
+          <option value="">Select</option>
+          <option>SHORT</option><option>MEDIUM</option><option>LONG</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Eye Type</label>
+        <select id="r_eyes">
+          <option value="">Select</option>
+          <option>ROUND</option><option>ALMOND</option><option>SMALL</option><option>BIG</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Face Shape</label>
+        <select id="r_face">
+          <option value="">Select</option>
+          <option>OVAL</option><option>ROUND</option><option>SQUARE</option><option>HEART</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nose Type</label>
+        <select id="r_nose">
+          <option value="">Select</option>
+          <option>FLAT</option><option>POINTED</option><option>BROAD</option><option>MEDIUM</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ear Type</label>
+        <select id="r_ear">
+          <option value="">Select</option>
+          <option>SMALL</option><option>MEDIUM</option><option>BIG</option><option>PROTRUDING</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Body Marks</label>
+        <input type="text" id="r_marks" placeholder="Tattoo on left arm, scar..."/>
+      </div>
+      <div class="form-group">
+        <label>Complications</label>
+        <input type="text" id="r_complications" placeholder="Diabetes, hypertension..."/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalResident')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveResident()">💾 Save Resident</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: ADD / EDIT BLOTTER
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalBlotter">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" id="blotterModalTitle">Add Blotter Record</div>
+      <button class="modal-close" onclick="closeModal('modalBlotter')">✕</button>
+    </div>
+    <div class="form-grid">
+      <input type="hidden" id="b_id"/>
+      <div class="form-group">
+        <label>Incident Type *</label>
+        <input type="text" id="b_incident" placeholder="e.g. Physical Injury, Theft"/>
+      </div>
+      <div class="form-group">
+        <label>Incident Place *</label>
+        <input type="text" id="b_place" placeholder="e.g. Brgy. San Jose"/>
+      </div>
+      <div class="form-group">
+        <label>Date & Time of Incident *</label>
+        <input type="datetime-local" id="b_datetime"/>
+      </div>
+      <div class="form-group">
+        <label>Complainant Name *</label>
+        <input type="text" id="b_cname" placeholder="Full name"/>
+      </div>
+      <div class="form-group">
+        <label>Complainant Address</label>
+        <input type="text" id="b_caddress" placeholder="Address"/>
+      </div>
+      <div class="form-group">
+        <label>Complainant Contact</label>
+        <input type="tel" id="b_ccontact" placeholder="+639xxxxxxxxx"/>
+      </div>
+      <div class="form-group">
+        <label>Suspect Name</label>
+        <input type="text" id="b_sname" placeholder="Full name or Unknown"/>
+      </div>
+      <div class="form-group">
+        <label>Suspect Address</label>
+        <input type="text" id="b_saddress" placeholder="Address"/>
+      </div>
+      <div class="form-group">
+        <label>Witness Name</label>
+        <input type="text" id="b_wname" placeholder="Full name"/>
+      </div>
+      <div class="form-group">
+        <label>Witness Address</label>
+        <input type="text" id="b_waddress" placeholder="Address"/>
+      </div>
+      <div class="form-group full">
+        <label>Narrative Description *</label>
+        <textarea id="b_narrative" rows="4" placeholder="Describe the incident in detail..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalBlotter')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBlotter()">💾 Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: ADD ACCOUNT
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalAccount">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="accountModalTitle">Add Account</div>
+      <button class="modal-close" onclick="closeModal('modalAccount')">✕</button>
+    </div>
+    <div class="form-grid">
+      <input type="hidden" id="a_id"/>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="a_name" placeholder="Juan Dela Cruz"/>
+      </div>
+      <div class="form-group">
+        <label>Username *</label>
+        <input type="text" id="a_username" placeholder="juandc"/>
+      </div>
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="text" id="a_password" placeholder="password"/>
+      </div>
+      <div class="form-group">
+        <label>Role *</label>
+        <select id="a_role">
+          <option value="STAFF">Staff</option>
+          <option value="ADMINISTRATOR">Administrator</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="a_gender">
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contact No.</label>
+        <input type="tel" id="a_contact" placeholder="+639xxxxxxxxx"/>
+      </div>
+      <div class="form-group full">
+        <label>Address</label>
+        <input type="text" id="a_address" placeholder="Address"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalAccount')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAccount()">💾 Save Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: VIEW RESIDENT DETAILS
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalViewResident">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title">Resident Profile</div>
+      <button class="modal-close" onclick="closeModal('modalViewResident')">✕</button>
+    </div>
+    <div id="viewResidentContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalViewResident')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
